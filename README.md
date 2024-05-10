@@ -2,8 +2,8 @@
 
 ## Configuration
 
-1. **Obtain a webhook URL** from your Discord server. This URL is necessary for the node to send messages to your Discord channel.
-2. **Replace the placeholder webhook URL** in the node’s code:
-   ```python
-   webhook_url = "https://discord.com/api/webhooks/...."  # Replace with your actual webhook URL
-   ```
+Usage
+
+1.  Registration: To register, users should use the !register command in your Discord server.
+
+2.  Sending Messages: After registration, users can send messages to the Discord channel by placing the encrypted file they received via email into the custom_nodes/ComfyUI_sendDiscord folder.
