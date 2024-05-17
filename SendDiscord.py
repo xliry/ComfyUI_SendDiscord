@@ -13,9 +13,7 @@ class SendDiscord:
         return {
             "required": {
                 "path": ("VHS_FILENAMES",),
-                "user_name": ('STRING', {'default': 'Banodoco'}),
                 "user_message": ('STRING', {'default': 'Check out my latest work!'}),
-                # Adding encrypted file selection, assume it's passed as a filename string
                 "encrypted_file": (encrypted_files,),
             },
         }
@@ -25,41 +23,51 @@ class SendDiscord:
     FUNCTION = "send_to_discord"
 
     def send_to_discord(self, path, user_message="", user_name="Default Username", encrypted_file=None):
-        # Handle path input tuple from ComfyUI
+        print("Starting send_to_discord function...")
+        print(f"Path received: {path}")
+        print(f"User message: {user_message}")
+        print(f"User name: {user_name}")
+        print(f"Encrypted file received: {encrypted_file}")
+
         if isinstance(path, tuple):
             path = path[1] if len(path) > 1 and isinstance(
-                path[1], list) else []
+                path[1], list) else path[0]
+
+        print(f"Processed path: {path}")
 
         if not path:
-            print("No video paths provided to send to Discord.")
+            print("No paths provided to send to Discord.")
             return []
 
-        # Preparing to send files to Heroku
-        files = [('file', (os.path.basename(p), open(p, 'rb'),
-                  'application/octet-stream')) for p in path]
+        files = []
+        for p in path:
+            if not p.endswith('.png'):  # PNG dosyalarını hariç tut
+                with open(p, 'rb') as file:
+                    files.append(
+                        ('file', (os.path.basename(p), file.read(), 'application/octet-stream')))
+        print(f"Files prepared for sending: {[f[0] for f in files]}")
 
-        # Include encrypted file if provided
         if encrypted_file:
             encrypted_file_path = Path(
                 "custom_nodes/ComfyUI_sendDiscord") / encrypted_file
             if encrypted_file_path.exists() and encrypted_file_path.is_file():
-                files.append(('encrypted_file', (encrypted_file, open(
-                    encrypted_file_path, 'rb'), 'application/octet-stream')))
+                with open(encrypted_file_path, 'rb') as file:
+                    files.append(
+                        ('encrypted_file', (encrypted_file, file.read(), 'application/octet-stream')))
+                print(f"Encrypted file added: {encrypted_file}")
 
-        payload = {
-            'user_name': user_name,
-            'user_message': user_message,
-        }
+        payload = {'user_name': user_name, 'user_message': user_message}
 
         try:
             response = requests.post(
-                'https://banodoco-942cd408d2cc.herokuapp.com/upload_files',
+                'https://urchin-app-brlyp.ondigitalocean.app/upload_files',
                 files=files,
                 data=payload
             )
+            print(f"Response status code: {response.status_code}")
             if response.status_code == 200:
                 print("Files sent successfully to Heroku")
-                print(response.json())
+                print(f"Response content: {response.json()}")
                 return [response.json()]
             else:
                 print("Failed to send files, status code:", response.status_code)
